@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GigEV — EV Rentals for Gig Drivers</title>
+<meta name="description" content="Rent an electric car built for gig work. Charging and insurance included, no lease, cancel anytime. Half off your first week.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Archivo:ital,wght@0,600;0,700;0,800;1,600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e130f;
+    --surface:#171e19;
+    --surface-2:#1e271f;
+    --line:#2b352c;
+    --volt:#c8ff4d;
+    --volt-dim:#9bd12e;
+    --ember:#ff6a45;
+    --text:#eef3ea;
+    --text-dim:#96a294;
+    --text-faint:#5e6b5c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:26px 26px;
+    pointer-events:none;
+    z-index:0;
+  }
+  h1,h2,h3{font-family:'Archivo',sans-serif; letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%;display:block;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+  section{position:relative; z-index:1;}
+  :focus-visible{outline:2px solid var(--volt); outline-offset:3px;}
+
+  /* Announcement bar */
+  .announce{
+    background:var(--volt);
+    color:#0e130f;
+    text-align:center;
+    font-size:0.82rem;
+    font-weight:700;
+    padding:9px 16px;
+    letter-spacing:0.01em;
+  }
+
+  /* Header */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(14,19,15,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:16px; padding-bottom:16px;
+  }
+  .logo{
+    font-family:'Archivo',sans-serif; font-weight:800; font-size:1.15rem;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .bolt{color:var(--volt); font-size:1.3rem;}
+  .navlinks{display:flex; gap:28px; font-size:0.92rem; color:var(--text-dim);}
+  .navlinks a:hover{color:var(--text);}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--volt); color:#0e130f;
+    font-weight:700; font-size:0.9rem;
+    padding:11px 20px; border-radius:999px;
+    border:none; cursor:pointer;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,255,77,0.25);}
+  .btn-outline{
+    background:transparent; color:var(--text); border:1px solid var(--line);
+  }
+  .btn-outline:hover{border-color:var(--volt); box-shadow:none;}
+
+  @media (max-width:760px){
+    .navlinks{display:none;}
+  }
+
+  /* Hero */
+  .hero{
+    padding:88px 0 64px;
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:0.76rem; text-transform:uppercase;
+    letter-spacing:0.08em; color:var(--volt-dim);
+    border:1px solid var(--line); border-radius:999px;
+    padding:6px 14px; margin-bottom:22px;
+  }
+  .hero h1{
+    font-size:clamp(2.3rem, 5vw, 3.6rem);
+    font-weight:800; line-height:1.04;
+    margin-bottom:22px;
+  }
+  .hero h1 em{
+    font-style:normal; color:var(--volt);
+  }
+  .hero p.lede{
+    color:var(--text-dim); font-size:1.08rem; max-width:46ch; margin-bottom:30px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
+  .rating{font-size:0.85rem; color:var(--text-faint); display:flex; align-items:center; gap:8px;}
+  .rating .stars{color:var(--volt); letter-spacing:2px;}
+
+  /* Gauge signature element */
+  .gauge-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .gauge-card::after{
+    content:"";
+    position:absolute; top:-40%; right:-30%;
+    width:280px; height:280px;
+    background:radial-gradient(circle, rgba(200,255,77,0.14), transparent 70%);
+    pointer-events:none;
+  }
+  .gauge-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+  .gauge-head .label{font-family:'IBM Plex Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint);}
+  .gauge-svg-wrap{display:flex; justify-content:center; padding:6px 0 2px;}
+  .gauge-readout{text-align:center; margin-top:-6px;}
+  .gauge-readout .amt{font-family:'Archivo',sans-serif; font-weight:800; font-size:2.6rem; color:var(--volt);}
+  .gauge-readout .amt span{font-size:1.1rem; color:var(--text-dim); font-weight:600;}
+  .gauge-readout .sub{color:var(--text-faint); font-size:0.82rem; margin-top:2px;}
+
+  .field{margin-top:18px;}
+  .field label{
+    display:flex; justify-content:space-between;
+    font-size:0.82rem; color:var(--text-dim); margin-bottom:8px;
+  }
+  .field label b{color:var(--text); font-weight:600;}
+  input[type=range]{
+    width:100%; -webkit-appearance:none; appearance:none;
+    height:5px; border-radius:4px; background:var(--line); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:18px; height:18px; border-radius:50%;
+    background:var(--volt); cursor:pointer; border:3px solid #0e130f;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%;
+    background:var(--volt); cursor:pointer; border:3px solid #0e130f;
+  }
+  .segbtns{display:flex; gap:8px; margin-top:18px;}
+  .segbtns button{
+    flex:1; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--text-dim); font-family:inherit; font-size:0.8rem; font-weight:600;
+    padding:9px 6px; border-radius:9px; cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .segbtns button.active{
+    background:rgba(200,255,77,0.12); border-color:var(--volt); color:var(--volt);
+  }
+  .gauge-foot{
+    margin-top:20px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:0.8rem; color:var(--text-faint);
+  }
+
+  /* platform strip */
+  .strip{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:22px 0;
+  }
+  .strip .wrap{
+    display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+    justify-content:space-between;
+  }
+  .strip .tag{font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em;}
+  .strip .plats{display:flex; gap:26px; flex-wrap:wrap; color:var(--text-dim); font-size:0.92rem; font-weight:600;}
+
+  /* Section heading pattern */
+  .sechead{margin-bottom:44px; max-width:640px;}
+  .sechead .eyebrow{margin-bottom:14px;}
+  .sechead h2{font-size:clamp(1.7rem,3.4vw,2.4rem); font-weight:800; line-height:1.15;}
+  .sechead p{color:var(--text-dim); margin-top:12px; font-size:1rem;}
+
+  section.pad{padding:88px 0;}
+
+  /* Why cards */
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px;
+  }
+  .card .stat{font-family:'Archivo',sans-serif; font-weight:800; font-size:2.2rem; color:var(--volt); margin-bottom:6px;}
+  .card h3{font-size:1.05rem; margin-bottom:8px;}
+  .card p{color:var(--text-dim); font-size:0.92rem;}
+
+  /* Use cases */
+  .usecase-list{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:8px;}
+  .usecase{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px;
+    padding:20px;
+  }
+  .usecase .k{font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--volt-dim); text-transform:uppercase; letter-spacing:0.06em;}
+  .usecase h4{margin:8px 0 4px; font-size:1.05rem;}
+  .usecase p{color:var(--text-faint); font-size:0.86rem;}
+  .range-strip{
+    margin-top:20px; display:flex; gap:20px; flex-wrap:wrap;
+    font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--text-dim);
+  }
+  .range-strip b{color:var(--volt);}
+
+  /* Pricing */
+  .price-card{
+    max-width:460px; margin:0 auto;
+    background:linear-gradient(160deg, var(--surface-2), var(--surface));
+    border:1px solid var(--volt-dim); border-radius:20px;
+    padding:36px; text-align:center; position:relative;
+  }
+  .price-card .badge{
+    position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+    background:var(--volt); color:#0e130f; font-weight:700; font-size:0.76rem;
+    padding:5px 14px; border-radius:999px;
+  }
+  .price-card .amt{font-family:'Archivo',sans-serif; font-weight:800; font-size:3.4rem; margin-top:14px;}
+  .price-card .amt span{font-size:1rem; color:var(--text-dim); font-weight:600;}
+  .price-card .was{color:var(--text-faint); font-size:0.86rem; text-decoration:line-through; margin-top:2px;}
+  .price-card ul{list-style:none; text-align:left; margin:26px 0; display:flex; flex-direction:column; gap:12px;}
+  .price-card li{display:flex; gap:10px; font-size:0.94rem; color:var(--text-dim);}
+  .price-card li::before{content:"✓"; color:var(--volt); font-weight:700;}
+  .price-card .btn{width:100%; justify-content:center; padding:14px;}
+  .price-card .fine{margin-top:14px; font-size:0.76rem; color:var(--text-faint);}
+
+  /* Reviews */
+  .grid3.reviews .card{display:flex; flex-direction:column; justify-content:space-between;}
+  .quote{color:var(--text); font-size:0.96rem; margin-bottom:18px;}
+  .who{font-size:0.82rem; color:var(--text-faint);}
+  .who b{color:var(--volt-dim); font-weight:600;}
+
+  /* FAQ */
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-q{
+    width:100%; text-align:left; background:none; border:none; color:var(--text);
+    font-family:'Archivo',sans-serif; font-weight:700; font-size:1.02rem;
+    padding:20px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px;
+  }
+  .faq-q .plus{color:var(--volt); font-size:1.3rem; transition:transform 0.2s ease; flex-shrink:0;}
+  .faq-item.open .faq-q .plus{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height 0.25s ease;}
+  .faq-a p{color:var(--text-dim); font-size:0.92rem; padding-bottom:20px; max-width:60ch;}
+
+  /* CTA band */
+  .ctaband{
+    background:var(--surface); border:1px solid var(--line); border-radius:24px;
+    padding:56px 40px; text-align:center;
+    margin:0 24px;
+  }
+  .ctaband h2{font-size:clamp(1.7rem,3.6vw,2.5rem); margin-bottom:14px;}
+  .ctaband p{color:var(--text-dim); margin-bottom:26px;}
+
+  footer{
+    padding:40px 0; text-align:center; color:var(--text-faint); font-size:0.82rem;
+  }
+  footer .logo{justify-content:center; margin-bottom:10px;}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr; padding-top:56px;}
+    .grid3, .usecase-list{grid-template-columns:1fr;}
+    .strip .wrap{flex-direction:column; align-items:flex-start; gap:14px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="announce">Launch pricing: 50% off your first week — offer ends soon</div>
+
+<header>
+  <nav class="wrap">
+    <a href="#top" class="logo"><span class="bolt">⚡</span>GigEV</a>
+    <div class="navlinks">
+      <a href="#why">Why GigEV</a>
+      <a href="#gigs">What you can do</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#reviews">Reviews</a>
+    </div>
+    <a href="#reserve" class="btn">Reserve now</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero wrap">
+    <div>
+      <div class="eyebrow">Rides · Deliveries · Errands — one car for all of it</div>
+      <h1>Stop paying the gas station <em>your</em> profit.</h1>
+      <p class="lede">Rent an electric car built for gig work. No fuel, no lease, no surprise fees — just plug in, log on, and keep more of every fare.</p>
+      <div class="hero-ctas">
+        <a href="#reserve" class="btn">Reserve your car</a>
+        <a href="#calc" class="btn btn-outline">See the math ↓</a>
+      </div>
+      <div class="rating"><span class="stars">★★★★★</span> 4.9 average from 1,200+ gig drivers</div>
+    </div>
+
+    <div class="gauge-card" id="calc">
+      <div class="gauge-head">
+        <span class="label">Savings meter</span>
+        <span class="label">Weekly</span>
+      </div>
+      <div class="gauge-svg-wrap">
+        <svg width="220" height="130" viewBox="0 0 220 130">
+          <path d="M 15 115 A 95 95 0 0 1 205 115" fill="none" stroke="#2b352c" stroke-width="14" stroke-linecap="round"/>
+          <path id="gaugeArc" d="M 15 115 A 95 95 0 0 1 205 115" fill="none" stroke="#c8ff4d" stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="298" stroke-dashoffset="298"/>
+          <circle cx="110" cy="115" r="4" fill="#eef3ea"/>
+          <line id="needle" x1="110" y1="115" x2="110" y2="35" stroke="#eef3ea" stroke-width="2.5" stroke-linecap="round"
+                style="transform-origin:110px 115px; transform:rotate(-90deg); transition:transform 0.25s ease;"/>
+        </svg>
+      </div>
+      <div class="gauge-readout">
+        <div class="amt" id="weeklySave">$68<span>/wk skipped at the pump</span></div>
+        <div class="sub" id="yearlySave">≈ $3,536 a year back in your pocket</div>
+      </div>
+
+      <div class="field">
+        <label>Miles you drive weekly <b id="milesVal">450 mi</b></label>
+        <input type="range" id="miles" min="100" max="900" step="10" value="450">
+      </div>
+      <div class="field">
+        <label>Gas price near you <b id="gasVal">$4.25/gal</b></label>
+        <input type="range" id="gas" min="2.75" max="5.50" step="0.05" value="4.25">
+      </div>
+      <div class="field">
+        <label>Your current ride</label>
+        <div class="segbtns">
+          <button data-mpg="20" class="active">Truck/SUV <br><small>20 mpg</small></button>
+          <button data-mpg="28">Sedan <br><small>28 mpg</small></button>
+          <button data-mpg="38">Hybrid <br><small>38 mpg</small></button>
+        </div>
+      </div>
+      <div class="gauge-foot">Charging is bundled into your GigEV rate — that's gas you never buy again.</div>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="wrap">
+      <span class="tag">Drive for every major platform</span>
+      <div class="plats"><span>Rideshare</span><span>Food delivery</span><span>Grocery</span><span>Courier</span></div>
+    </div>
+  </div>
+
+  <section class="pad" id="why">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="eyebrow">Why drivers switch</div>
+        <h2>Built for the way you actually earn.</h2>
+        <p>No dealership, no lease, no waiting around. Just a car that's ready when your shift is.</p>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <div class="stat">$0</div>
+          <h3>No gas, ever</h3>
+          <p>Charging credits are baked into your weekly rate. Plug in overnight, drive all day, keep the difference.</p>
+        </div>
+        <div class="card">
+          <div class="stat">24 hr</div>
+          <h3>Cancel anytime</h3>
+          <p>Give a day's notice and walk away — no cancellation fees, no penalties, no fine print.</p>
+        </div>
+        <div class="card">
+          <div class="stat">Same day</div>
+          <h3>Drive today</h3>
+          <p>Reserve in minutes and pick up the same afternoon. No credit hoops, no long-term commitment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="gigs" style="padding-top:0;">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="eyebrow">One car, every gig</div>
+        <h2>Morning rides. Lunch drops. Evening groceries.</h2>
+        <p>Switch platforms without switching cars — your GigEV is logged into all of them at once.</p>
+      </div>
+      <div class="usecase-list">
+        <div class="usecase">
+          <div class="k">Morning</div>
+          <h4>Rides</h4>
+          <p>Uber, Lyft — pick up passengers with a cabin that stays quiet and cold-AC ready.</p>
+        </div>
+        <div class="usecase">
+          <div class="k">Midday</div>
+          <h4>Deliveries</h4>
+          <p>DoorDash, Uber Eats — enough range to chain runs back to back without a fuel stop.</p>
+        </div>
+        <div class="usecase">
+          <div class="k">Evening</div>
+          <h4>Errands</h4>
+          <p>Instacart, Shipt — trunk space for carts, and a charge that outlasts your shift.</p>
+        </div>
+      </div>
+      <div class="range-strip">
+        <span>Runs <b>all day</b> on a single charge</span>
+        <span><b>260 mi</b> per charge</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="pricing">
+    <div class="wrap">
+      <div class="sechead" style="margin-left:auto;margin-right:auto;text-align:center;">
+        <div class="eyebrow" style="margin-inline:auto;">Pricing</div>
+        <h2>One weekly rate. Everything included.</h2>
+      </div>
+      <div class="price-card">
+        <span class="badge">50% off week one</span>
+        <div class="amt">$319<span>/week</span></div>
+        <div class="was">$419 elsewhere · unlimited platform miles</div>
+        <ul>
+          <li>Charging credits included</li>
+          <li>Insurance & roadside assistance</li>
+          <li>Same-day pickup, no lease</li>
+          <li>Cancel anytime with 24-hr notice</li>
+        </ul>
+        <a href="#reserve" class="btn">Reserve your car</a>
+        <div class="fine">Payments secured by Square</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="reviews">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="eyebrow">Reviews</div>
+        <h2>Drivers keeping more of what they earn.</h2>
+      </div>
+      <div class="grid3 reviews">
+        <div class="card">
+          <p class="quote">"I used to hand my rideshare earnings straight to the gas station. My first month with GigEV, I noticed the difference in my bank balance right away."</p>
+          <div class="who"><b>Marcus T.</b> · Rideshare, 6 mo</div>
+        </div>
+        <div class="card">
+          <p class="quote">"Running two apps off one car with zero fill-ups changed my math completely. Best move I made this year for my delivery side hustle."</p>
+          <div class="who"><b>Aisha R.</b> · Delivery + grocery gigs</div>
+        </div>
+        <div class="card">
+          <p class="quote">"No lease, no credit check — I was driving it home the same afternoon. Having insurance and charging bundled in made the decision easy."</p>
+          <div class="who"><b>Devon K.</b> · Courier, 1 yr</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="faq">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="eyebrow">FAQ</div>
+        <h2>Questions, answered.</h2>
+      </div>
+      <div style="max-width:720px;">
+        <div class="faq-item open">
+          <button class="faq-q">Can I use it with any gig platform? <span class="plus">+</span></button>
+          <div class="faq-a"><p>Yes — Uber, Lyft, DoorDash, Uber Eats, Instacart, Shipt, Amazon Flex, Grubhub and more. If you can sign up for it, you can drive for it. No platform restrictions.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Is charging really included? <span class="plus">+</span></button>
+          <div class="faq-a"><p>Yes. Every weekly rate comes with charging credits built in, so your electricity cost is already covered — no separate charging bill to track.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">What's the catch on the 50% off? <span class="plus">+</span></button>
+          <div class="faq-a"><p>None — new drivers get half off their first week automatically at checkout. After that, you're billed the standard weekly rate with no hidden step-up fees.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">How do I pay? <span class="plus">+</span></button>
+          <div class="faq-a"><p>Weekly payments are processed securely through Square. You can update your card or cancel from your account at any time.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="reserve">
+    <div class="ctaband">
+      <h2>Every mile should pay you.</h2>
+      <p>Reserve today, drive today. Charging and insurance included.</p>
+      <a href="#" class="btn">Reserve your car</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="#top" class="logo"><span class="bolt">⚡</span>GigEV</a>
+  <div>© 2026 GigEV · Payments via Square</div>
+</footer>
+
+<script>
+  // Savings gauge
+  const milesEl = document.getElementById('miles');
+  const gasEl = document.getElementById('gas');
+  const milesVal = document.getElementById('milesVal');
+  const gasVal = document.getElementById('gasVal');
+  const weeklySave = document.getElementById('weeklySave');
+  const yearlySave = document.getElementById('yearlySave');
+  const gaugeArc = document.getElementById('gaugeArc');
+  const needle = document.getElementById('needle');
+  const segBtns = document.querySelectorAll('.segbtns button');
+  let mpg = 20;
+
+  const ARC_LEN = 298;
+  const MAX_WEEKLY = 160; // caps the gauge fill for visual scaling
+
+  function update(){
+    const miles = parseFloat(milesEl.value);
+    const gas = parseFloat(gasEl.value);
+    milesVal.textContent = miles + ' mi';
+    gasVal.textContent = '$' + gas.toFixed(2) + '/gal';
+
+    const gallons = miles / mpg;
+    const weekly = gallons * gas;
+    const yearly = weekly * 52;
+
+    weeklySave.innerHTML = '$' + weekly.toFixed(0) + '<span>/wk skipped at the pump</span>';
+    yearlySave.textContent = '≈ $' + yearly.toLocaleString(undefined,{maximumFractionDigits:0}) + ' a year back in your pocket';
+
+    const pct = Math.min(weekly / MAX_WEEKLY, 1);
+    gaugeArc.style.strokeDashoffset = ARC_LEN - (ARC_LEN * pct);
+    const angle = -90 + (pct * 180);
+    needle.style.transform = 'rotate(' + angle + 'deg)';
+  }
+
+  milesEl.addEventListener('input', update);
+  gasEl.addEventListener('input', update);
+  segBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      segBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      mpg = parseFloat(btn.dataset.mpg);
+      update();
+    });
+  });
+  update();
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    if(item.classList.contains('open')){ a.style.maxHeight = a.scrollHeight + 'px'; }
+    q.addEventListener('click', ()=>{
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i=>{
+        i.classList.remove('open');
+        i.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if(!isOpen){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
